@@ -1,4 +1,5 @@
 import axios from 'axios';
+import i18next from 'i18next';
 import onChange from 'on-change';
 import { string } from 'yup';
 
@@ -42,14 +43,14 @@ const app = () => {
     validator.isValid(rssLink)
       .then((res) => {
         if (!res) {
-          throw new Error('Invalid URL');
+          throw new Error(i18next.t('error.invalid'));
         }
 
         return rssLink;
       })
       .then((link) => {
         if (state.feeds.some(({ feedLink }) => feedLink === link)) {
-          throw new Error('Feed URL has been already loaded');
+          throw new Error(i18next.t('error.duplicate'));
         }
 
         return link;
@@ -81,7 +82,7 @@ const app = () => {
             };
           })
           .catch(() => {
-            throw new Error('Network error');
+            throw new Error(i18next.t('error.network'));
           });
       })
       .catch((error) => {

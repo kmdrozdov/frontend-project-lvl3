@@ -1,3 +1,5 @@
+import i18next from 'i18next';
+
 const renderFormFeedback = (state) => {
   const formFeedback = document.querySelector('div.form-feedback');
   formFeedback.classList.remove('text-danger', 'text-success');
@@ -8,7 +10,7 @@ const renderFormFeedback = (state) => {
     formFeedback.innerText = state.form.error;
   } else if (state.form.state === 'done') {
     formFeedback.classList.add('text-success');
-    formFeedback.innerText = 'RSS has been loaded';
+    formFeedback.innerText = i18next.t('success.added');
   }
 };
 
