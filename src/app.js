@@ -1,41 +1,11 @@
+import axios from 'axios';
 import onChange from 'on-change';
 import { string } from 'yup';
 
+import parseRss from './parseRss';
+import { renderFeedInfo, renderFormState } from './view';
+
 const validator = string().url();
-
-const renderFormMessage = (state) => {
-  const formMessage = document.querySelector('div.form-message');
-  const form = document.querySelector('form');
-
-  if (formMessage !== null) {
-    formMessage.remove();
-  }
-
-  if (state.form.state === 'invalid') {
-    if (formMessage !== null) {
-      formMessage.innerText = state.form.error;
-      return;
-    }
-
-    const message = document.createElement('div');
-    message.classList.add('form-message', 'text-danger');
-    message.innerText = state.form.error;
-
-    form.parentNode.append(message);
-  }
-};
-
-const renderInputValidationState = (state) => {
-  const rssLinkInput = document.querySelector('input[name="rssLink"]');
-
-  if (state.form.state === 'invalid') {
-    rssLinkInput.classList.add('is-invalid');
-  } else {
-    rssLinkInput.classList.remove('is-invalid');
-  }
-
-  renderFormMessage(state);
-};
 
 const app = () => {
   const state = {
@@ -46,11 +16,16 @@ const app = () => {
       state: 'empty',
       error: '',
     },
+    feeds: [],
   };
 
   const watchedState = onChange(state, (path) => {
     if (path.startsWith('form')) {
-      renderInputValidationState(state);
+      renderFormState(state);
+    }
+
+    if (path.startsWith('feeds')) {
+      renderFeedInfo(state);
     }
   });
 
@@ -66,15 +41,54 @@ const app = () => {
 
     validator.isValid(rssLink)
       .then((res) => {
-        if (res) {
-          watchedState.form.state = 'valid';
-          return;
+        if (!res) {
+          throw new Error('Invalid URL');
         }
 
+        return rssLink;
+      })
+      .then((link) => {
+        if (state.feeds.some(({ feedLink }) => feedLink === link)) {
+          throw new Error('Feed URL has been already loaded');
+        }
+
+        return link;
+      })
+      .then((link) => {
+        watchedState.form.state = 'sending';
+
+        return axios.get(`https://cors-anywhere.herokuapp.com/${link}`, {
+          headers: {
+            'X-Requested-With': null,
+          },
+        })
+          .then((resp) => {
+            watchedState.feeds = [
+              ...watchedState.feeds,
+              {
+                feedLink: link,
+                ...parseRss(resp.data),
+              },
+            ];
+
+            watchedState.form = {
+              ...watchedState.form,
+              data: {
+                rssLink: '',
+              },
+              error: '',
+              state: 'done',
+            };
+          })
+          .catch(() => {
+            throw new Error('Network error');
+          });
+      })
+      .catch((error) => {
         watchedState.form = {
           ...watchedState.form,
           state: 'invalid',
-          error: 'Invalid URL value',
+          error: error.message,
         };
       });
   });

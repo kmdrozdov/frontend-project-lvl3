@@ -12,7 +12,7 @@
             <div class="col-lg-8 mx-auto text-white">
               <h1 class="display-3">RSS aggregator</h1>
               <p class="lead">This is a RSS aggregator. Try it below!</p>
-              <form>
+              <form autocomplete="off">
                 <div class="form-row">
                   <div class="col">
                     <input 
@@ -31,10 +31,16 @@
                 </div>
               </form>
               <p class="example text-muted my-1">Example: https://ru.hexlet.io/lessons.rss</p>
+              <div class="form-feedback"></div>
             </div>
           </div>
         </div>
       </section>
+      <div class="container-xl">
+        <div class="row">
+          <div class="col-md-10 col-lg-8 mx-auto feeds"></div>
+        </div>
+      </div>
     </div>
   </body>
 </html>
