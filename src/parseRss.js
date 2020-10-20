@@ -9,9 +9,11 @@ export default (rssData) => {
   const items = channelItems.map((item) => {
     const title = item.querySelector('title').textContent;
     const link = item.querySelector('link').textContent;
+    const guid = item.querySelector('guid').textContent;
 
     return {
       link,
+      guid,
       title,
     };
   });

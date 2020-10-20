@@ -8,6 +8,14 @@ import { renderFeedInfo, renderFormState } from './view';
 
 const validator = string().url();
 
+const makeRequest = (url) => (
+  axios.get(`https://cors-anywhere.herokuapp.com/${url}`, {
+    headers: {
+      'X-Requested-With': null,
+    },
+  })
+);
+
 const app = () => {
   const state = {
     form: {
@@ -17,7 +25,7 @@ const app = () => {
       state: 'empty',
       error: '',
     },
-    feeds: [],
+    feeds: {},
   };
 
   const watchedState = onChange(state, (path) => {
@@ -40,6 +48,25 @@ const app = () => {
 
     watchedState.form.data.rssLink = rssLink;
 
+    const updateRssFeed = (feedLink) => {
+      makeRequest(feedLink)
+        .then((resp) => {
+          const { items } = parseRss(resp.data);
+          const filteredData = items.filter(
+            (item) => !watchedState.feeds[feedLink].items.some((post) => post.guid === item.guid),
+          );
+
+          watchedState.feeds[feedLink].items = [
+            ...watchedState.feeds[feedLink].items,
+            ...filteredData,
+          ];
+
+          setTimeout(() => {
+            updateRssFeed(feedLink);
+          }, 5000);
+        });
+    };
+
     validator.isValid(rssLink)
       .then((res) => {
         if (!res) {
@@ -49,7 +76,7 @@ const app = () => {
         return rssLink;
       })
       .then((link) => {
-        if (state.feeds.some(({ feedLink }) => feedLink === link)) {
+        if (Object.keys(state.feeds).includes(link)) {
           throw new Error(i18next.t('error.duplicate'));
         }
 
@@ -58,19 +85,12 @@ const app = () => {
       .then((link) => {
         watchedState.form.state = 'sending';
 
-        return axios.get(`https://cors-anywhere.herokuapp.com/${link}`, {
-          headers: {
-            'X-Requested-With': null,
-          },
-        })
+        return makeRequest(link)
           .then((resp) => {
-            watchedState.feeds = [
+            watchedState.feeds = {
               ...watchedState.feeds,
-              {
-                feedLink: link,
-                ...parseRss(resp.data),
-              },
-            ];
+              [link]: parseRss(resp.data),
+            };
 
             watchedState.form = {
               ...watchedState.form,
@@ -80,6 +100,10 @@ const app = () => {
               error: '',
               state: 'done',
             };
+
+            setTimeout(() => {
+              updateRssFeed(link);
+            }, 5000);
           })
           .catch(() => {
             throw new Error(i18next.t('error.network'));

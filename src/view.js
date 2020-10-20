@@ -36,7 +36,7 @@ const renderFeedInfo = (state) => {
   const { feeds } = state;
   const feedsContainer = document.querySelector('div.feeds');
 
-  const feedsHTML = feeds.map(({ channelTitle, items }) => {
+  const feedsHTML = Object.values(feeds).map(({ channelTitle, items }) => {
     const itemsHTML = items.map(({ link, title }) => (`
       <div>
         <a href="${link}">${title}</a>
@@ -49,13 +49,7 @@ const renderFeedInfo = (state) => {
     `;
   });
 
-  feedsContainer.innerHTML = `
-    <div class="row">
-      <div class="col-md-10 col-lg-8 mx-auto feeds">
-        ${feedsHTML.join('')}
-      </div>
-    </div>
-  `;
+  feedsContainer.innerHTML = feedsHTML.join('');
 };
 
 export {
