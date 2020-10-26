@@ -80,9 +80,10 @@ const app = () => {
             });
         };
 
+        const addedFeedsLinks = watchedState.feeds.map(({ link }) => link);
         const validator = string()
           .url(i18next.t('error.invalid'))
-          .notOneOf(Object.keys(watchedState.feeds), i18next.t('error.duplicate'));
+          .notOneOf(addedFeedsLinks, i18next.t('error.duplicate'));
 
         validator.validate(rssLink)
           .then((link) => {
