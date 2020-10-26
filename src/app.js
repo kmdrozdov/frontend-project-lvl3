@@ -1,6 +1,6 @@
 import axios from 'axios';
 import i18next from 'i18next';
-import _ from 'lodash';
+import { differenceBy } from 'lodash';
 import onChange from 'on-change';
 import { string } from 'yup';
 
@@ -70,7 +70,7 @@ const app = () => {
             .then((resp) => {
               const { items } = parseRss(resp.data);
               const currentFeed = watchedState.feeds.find(({ link }) => link === feedLink);
-              const filteredData = _.differenceBy(items, currentFeed.items, 'guid');
+              const filteredData = differenceBy(items, currentFeed.items, 'guid');
 
               currentFeed.items.push(...filteredData);
 
