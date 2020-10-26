@@ -36,7 +36,7 @@ const renderFeedInfo = (state) => {
   const { feeds } = state;
   const feedsContainer = document.querySelector('div.feeds');
 
-  const feedsHTML = Object.values(feeds).map(({ channelTitle, items }) => {
+  const feedsHTML = feeds.map(({ channelTitle, items }) => {
     const itemsHTML = items.map(({ link, title }) => (`
       <div>
         <a href="${link}">${title}</a>
